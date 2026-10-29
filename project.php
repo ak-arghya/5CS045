@@ -26,9 +26,25 @@
                 Explore cars and their specifications
             </h1>
 
-            <a href="add-car-form.php" class="btn btn-primary">
-                Add a Car
-            </a>
+            
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 my-4">
+
+                <h1 class="mb-0">
+                    Explore cars and their specifications
+                </h1>
+
+                <div>
+                    <a href="search-car.php" class="btn btn-success">
+                        Search Cars
+                    </a>
+
+                    <a href="add-car-form.php" class="btn btn-primary">
+                        Add a Car
+                    </a>
+                </div>
+
+            </div>
+
 
         </div>
 
