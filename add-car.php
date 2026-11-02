@@ -1,6 +1,9 @@
 
 <?php
 
+// Start session to identify the logged-in user
+session_start();
+
 // Only accept form submissions
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     header("Location: add-car-form.php");
@@ -18,6 +21,10 @@ $car_price = ($_POST['CarPrice'] ?? '') === ''
     ? null
     : filter_input(INPUT_POST, 'CarPrice', FILTER_VALIDATE_FLOAT);
 $car_description = trim($_POST['CarDescription'] ?? '');
+
+// Get the logged-in user's ID
+// Anonymous visitors will have no owner
+$user_id = $_SESSION['user_id'] ?? null;
 
 // Validate form values
 if (
@@ -39,16 +46,21 @@ include("db.php");
 // Upload car image
 $image_name = null;
 
-if (isset($_FILES['CarImage']) &&
-    $_FILES['CarImage']['error'] !== UPLOAD_ERR_NO_FILE) {
+if (
+    isset($_FILES['CarImage']) &&
+    $_FILES['CarImage']['error'] !== UPLOAD_ERR_NO_FILE
+) {
 
     if ($_FILES['CarImage']['error'] !== UPLOAD_ERR_OK) {
         exit("Image upload failed.");
     }
 
     // Check image size (maximum 5MB)
-    if ($_FILES['CarImage']['size'] > 5 * 1024 * 1024) {
-        exit("Image must be smaller than 5MB.");
+    if (
+        $_FILES['CarImage']['size'] <= 0 ||
+        $_FILES['CarImage']['size'] > 5 * 1024 * 1024
+    ) {
+        exit("Image must be between 1 byte and 5MB.");
     }
 
     // Check the actual file type
@@ -65,6 +77,11 @@ if (isset($_FILES['CarImage']) &&
         exit("Only JPG, PNG and WebP images are allowed.");
     }
 
+    // Verify that the file is an image
+    if (getimagesize($_FILES['CarImage']['tmp_name']) === false) {
+        exit("Invalid image file.");
+    }
+
     // Generate a unique image filename
     $image_name = bin2hex(random_bytes(16)) .
                   "." . $allowed_types[$file_type];
@@ -76,6 +93,10 @@ if (isset($_FILES['CarImage']) &&
         exit("Images folder does not exist.");
     }
 
+    if (!is_writable($upload_folder)) {
+        exit("Images folder is not writable.");
+    }
+
     if (!move_uploaded_file(
         $_FILES['CarImage']['tmp_name'],
         $upload_folder . $image_name
@@ -85,25 +106,28 @@ if (isset($_FILES['CarImage']) &&
 }
 
 
-
-
 // Build SQL statement
 $sql = "INSERT INTO cars
         (make, model, year, fuel_type, engine_size,
-         transmission, price, description, image, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
+         transmission, price, description, image,
+         user_id, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
 
 // Prepare SQL statement
 $stmt = mysqli_prepare($mysqli, $sql);
 
 if (!$stmt) {
+    if ($image_name !== null) {
+        unlink(__DIR__ . "/images/" . $image_name);
+    }
+
     exit("Unable to prepare database query.");
 }
 
 // Add form values to the SQL statement
 mysqli_stmt_bind_param(
     $stmt,
-    "ssisssdss",
+    "ssisssdssi",
     $car_make,
     $car_model,
     $car_year,
@@ -112,17 +136,26 @@ mysqli_stmt_bind_param(
     $transmission,
     $car_price,
     $car_description,
-    $image_name
+    $image_name,
+    $user_id
 );
 
 // Run SQL statement
 if (!mysqli_stmt_execute($stmt)) {
+
+    // Remove uploaded image if database insertion fails
     if ($image_name !== null) {
         unlink(__DIR__ . "/images/" . $image_name);
     }
+
     exit("Unable to save car information.");
 }
+
+// Close statement
+mysqli_stmt_close($stmt);
 
 // Redirect to car list
 header("Location: project.php");
 exit;
+
+?>
