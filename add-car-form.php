@@ -1,3 +1,6 @@
+<?php
+include_once("session.php");
+?>
 
 <!doctype html>
 <html lang="en">
@@ -15,6 +18,10 @@
         <h1>Add a car</h1>
 
         <form action="add-car.php" method="post" enctype="multipart/form-data">
+            <input type="hidden"
+                    name="csrf_token"
+                    value="<?= e($_SESSION['csrf_token']) ?>">
+
 
             <div class="mb-3">
                 <label for="CarMake" class="form-label">Car make</label>

@@ -1,7 +1,7 @@
 
 <?php
 // Start session
-session_start();
+include_once("session.php");
 ?>
 
 <!doctype html>
