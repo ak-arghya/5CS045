@@ -132,7 +132,7 @@ $sql = "INSERT INTO cars
         (make, model, year, fuel_type,
          engine_size, transmission, price,
          description, image, user_id, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved')";
 
 // Prepare SQL statement
 $stmt = mysqli_prepare($mysqli, $sql);
