@@ -165,6 +165,20 @@ if (!$results) {
 
     <?php endif; ?>
 
+
+    <!-- Success message after deleting -->
+    <?php if (
+        isset($_GET['deleted']) &&
+        $_GET['deleted'] === '1'
+    ): ?>
+
+        <div class="alert alert-success">
+            Car deleted successfully!
+        </div>
+
+    <?php endif; ?>
+
+
     <!-- Display cars -->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
 
@@ -268,10 +282,23 @@ if (!$results) {
                             (int)$_SESSION['user_id'] === (int)$a_row['user_id']
                         ): ?>
 
-                            <a href="edit-car-form.php?id=<?= (int)$a_row['car_id'] ?>"
-                               class="btn btn-warning edit-car-btn">
-                                Edit Car
-                            </a>
+                            
+                            <div class="d-flex gap-2 mt-auto">
+
+                                <!-- Edit Car button -->
+                                <a href="edit-car-form.php?id=<?= (int)$a_row['car_id'] ?>"
+                                class="btn btn-warning flex-fill">
+                                    Edit Car
+                                </a>
+
+                                <!-- Delete Car button -->
+                                <a href="delete-car-form.php?id=<?= (int)$a_row['car_id'] ?>"
+                                class="btn btn-danger flex-fill">
+                                    Delete Car
+                                </a>
+
+                            </div>
+
 
                         <?php endif; ?>
 
